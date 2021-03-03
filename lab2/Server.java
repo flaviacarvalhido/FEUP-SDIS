@@ -5,15 +5,28 @@ import java.net.*;
 public class Server {
     public static void main(String[] args) throws IOException {
 
-        if(args.length != 1){
-            System.out.println("Usage: java Server <port>");
+        if(args.length != 3){
+            System.out.println("Usage: java Server <port> <mcast_addr> <mcast_port>");
         }else{
 
             DNSService dnsService = new DNSService();        //create dns service handler
 
-            String port = args[0];
-            DatagramSocket serverSocket = new DatagramSocket(null);
-            serverSocket.bind(new InetSocketAddress(InetAddress.getByName("localhost"),Integer.valueOf(port)));
+            //parse server arguments
+            String serverPort = args[0];
+            String multicastAddress = args[1];
+            String multicastPort = args[2];
+            
+            //------------------------- MULTICAST SERVER -------------------------
+            //get Server Address
+            String serverAddress = InetAddress.getLocalHost().getHostAddress(); 
+
+            //start ServerThread, where server announces its service
+            ServerThread announcer = new ServerThread(serverAddress, serverPort, multicastAddress, multicastPort);
+            announcer.start();
+
+            //Open request server socket
+            DatagramSocket serverSocket = new DatagramSocket(Integer.parseInt(serverPort));
+            
             System.out.println("The server is running");
 
             while(true){        //loop for receiving requests
